@@ -94,7 +94,7 @@ export default function ReviewsPage() {
         isBanned: bannedMap[r.user_id] || false
       }));
 
-      setReviews(formatted as Review[]);
+      setReviews(formatted as unknown as Review[]);
     }
     setLoading(false);
   };
