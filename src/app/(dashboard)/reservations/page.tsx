@@ -17,6 +17,7 @@ type Reservation = {
   allergies?: string | null;
   dietary_preferences?: string | null;
   chronic_diseases?: string | null;
+  seating_preferences?: string | null;
   restaurant_name?: string;
   user_name?: string;
 };
