@@ -60,6 +60,8 @@ export default function ReservationsPage() {
       // Fetch related users
       const userIds = Array.from(new Set(resData.map((r: any) => r.user_id).filter(Boolean)));
       let usersMap: Record<string, string> = {};
+      let anamnesisMap: Record<string, any> = {};
+
       if (userIds.length > 0) {
         const { data: userData } = await supabase
           .from("users")
@@ -69,14 +71,43 @@ export default function ReservationsPage() {
         if (userData) {
           usersMap = Object.fromEntries(userData.map((u: any) => [u.id, u.full_name]));
         }
+
+        const { data: anamnesisData } = await supabase
+          .from("customer_anamnesis")
+          .select("user_id, preferences")
+          .in("user_id", userIds);
+
+        if (anamnesisData) {
+          anamnesisMap = Object.fromEntries(anamnesisData.map((a: any) => [a.user_id, a.preferences || {}]));
+        }
       }
 
       // Merge data
-      const formatted = resData.map((res: any) => ({
-        ...res,
-        restaurant_name: restaurantsMap[res.restaurant_id] || "Bilinmeyen Restoran",
-        user_name: usersMap[res.user_id] || "Bilinmeyen Kullanıcı",
-      }));
+      const formatted = resData.map((res: any) => {
+        const prefs = anamnesisMap[res.user_id] || {};
+        
+        const getVal = (arr: any, other: any) => {
+          let parts = Array.isArray(arr) ? [...arr] : [];
+          if (other && typeof other === 'string' && other.trim() !== '') {
+            if (parts.includes('Diğer')) {
+              parts = parts.filter(p => p !== 'Diğer');
+            }
+            parts.push(other);
+          }
+          return parts.length > 0 ? parts.join(", ") : null;
+        };
+
+        return {
+          ...res,
+          restaurant_name: restaurantsMap[res.restaurant_id] || "Bilinmeyen Restoran",
+          user_name: usersMap[res.user_id] || "Bilinmeyen Kullanıcı",
+          allergies: getVal(prefs.allergies, prefs.other_allergy),
+          dietary_preferences: getVal(prefs.dietary_preferences, prefs.other_diet),
+          chronic_diseases: getVal(prefs.chronic_illnesses, prefs.other_chronic),
+          seating_preferences: getVal(prefs.seating_preferences, null)
+        };
+      });
+      
       setReservations(formatted);
     } else {
       setReservations([]);
@@ -250,6 +281,12 @@ export default function ReservationsPage() {
                       <span className="text-xs font-bold text-text-secondary block mb-1">Kronik Rahatsızlıklar</span>
                       <p className="text-sm text-text-primary bg-warning/5 p-2 rounded border border-warning/10">
                         {selectedReservation.chronic_diseases || "Belirtilmedi"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-text-secondary block mb-1">Oturma Tercihleri</span>
+                      <p className="text-sm text-text-primary bg-success/5 p-2 rounded border border-success/10">
+                        {selectedReservation.seating_preferences || "Belirtilmedi"}
                       </p>
                     </div>
                     {/* Placeholder for future notes */}
