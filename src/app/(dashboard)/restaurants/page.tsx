@@ -18,6 +18,7 @@ type Restaurant = {
   owner_name: string | null;
   tax_number: string | null;
   address: string | null;
+  city: string | null;
   phone_number: string | null;
   email: string | null;
 };
@@ -47,7 +48,7 @@ export default function RestaurantsPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("restaurants")
-      .select("id, name, description, chef_name, chef_details, service_hours, facilities, is_verified, is_sponsored, created_at, owner_name, tax_number, address, phone_number, email")
+      .select("id, name, description, chef_name, chef_details, service_hours, facilities, is_verified, is_sponsored, created_at, owner_name, tax_number, address, city, phone_number, email")
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -249,8 +250,8 @@ export default function RestaurantsPage() {
                       {restaurant.is_verified ? 'Onaylı' : 'Bekliyor'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-text-secondary">
-                    <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0"/> {restaurant.address ? restaurant.address.split(',')[0] : 'Bilinmiyor'}</span>
+                  <div className="flex items-center gap-4 text-xs text-text-secondary mt-1">
+                    <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0"/> {restaurant.city ? restaurant.city : (restaurant.address ? restaurant.address.split(',')[0] : 'Şehir Bilinmiyor')}</span>
                   </div>
                 </button>
               ))
@@ -357,7 +358,7 @@ export default function RestaurantsPage() {
                           <div className="space-y-2 text-sm">
                             <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-text-secondary"/> {selectedRestaurant.phone_number || "-"}</div>
                             <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-text-secondary"/> {selectedRestaurant.email || "-"}</div>
-                            <div className="flex items-start gap-2 mt-2"><MapPin className="w-4 h-4 text-text-secondary shrink-0 mt-0.5"/> <span className="leading-tight">{selectedRestaurant.address || "-"}</span></div>
+                            <div className="flex items-start gap-2 mt-2"><MapPin className="w-4 h-4 text-text-secondary shrink-0 mt-0.5"/> <span className="leading-tight">{selectedRestaurant.city ? `${selectedRestaurant.city} - ` : ''}{selectedRestaurant.address || "-"}</span></div>
                           </div>
                         </div>
                       </div>
